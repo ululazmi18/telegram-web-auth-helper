@@ -1,59 +1,88 @@
-# Telegram Web Auth & Automation Helper 🌐
+# Telegram Web Auth Helper 🌐
 
-A robust Python utility designed to streamline the authentication process for **Telegram Web (K Version)**. This tool bridges the gap between the Telegram API (Backend) and Browser Automation (Frontend), creating persistent sessions ideal for automated workflows such as chat screenshotting, scraping, or testing.
+> **Repository Name:** `telegram-web-auth-helper`
+> **Main Script:** `tg_web_auth.py`
 
-## 🚀 Key Features
+Repositori ini berisi **Skrip Utilitas Python** yang dirancang khusus untuk menangani proses otentikasi (login) ke **Telegram Web (Versi K)** secara otomatis. Tujuan utamanya adalah menghasilkan **sesi browser persisten** (Chrome User Data Profile) yang dapat digunakan kembali oleh alat otomatisasi lain (seperti bot screenshot atau scraper) tanpa perlu login manual berulang kali.
 
-- **seamless Authentication**: Automatically intercepts Login OTP codes from Telegram Service Notifications (ID 777000) via Pyrogram API - no need to check your mobile device manually.
-- **Persistent Browser Sessions**: Generates and maintains a dedicated Chrome user profile (`user_data_dir`). Once logged in, the session remains active indefinitely, enabling headless automation without re-login.
-- **Multi-Factor Support**: Handles 2FA (Cloud Password) automatically during the login process.
-- **Dual Login Methods**:
-  - **QR Code Mode**: Display and scan QR codes directly from the terminal.
-  - **Phone Number Mode**: Manual input with automatic OTP fetching.
+## 🧠 Konsep Inti (Cara Kerja)
 
-## 🛠️ Prerequisites
+Skrip ini bertindak sebagai **jembatan penghubung** antara **API Telegram (Backend)** dan **Web Browser (Frontend)**.
 
-- **Python 3.8+**
-- **Google Chrome** installed on the system.
+1.  **Backend (Pyrogram)**:
+    -   Terhubung langsung ke server Telegram menggunakan sesi API yang ringan (`.session`).
+    -   Memonitor pesan masuk dari **Telegram (ID 777000)** secara real-time.
+    -   **Mengapa?** Untuk menangkap **Kode OTP Login** secara otomatis, sehingga Anda tidak perlu mengecek HP untuk melihat kode.
 
-## 📦 Installation
+2.  **Frontend (Playwright)**:
+    -   Menjalankan instance browser Chromium (Google Chrome).
+    -   **FITUR KRUSIAL**: Menggunakan `user_data_dir` khusus (contoh: `./62812345678_chrome`).
+    -   **Mengapa?** Browser yang dijalankan dengan direktori data user khusus akan **menyimpan cookies dan local storage selamanya**. Sekali Anda berhasil login, folder ini akan menyimpan status login Anda. Skrip otomatisasi lain di masa depan cukup diarahkan ke folder ini agar langsung dalam status "Sudah Login".
 
-1.  **Clone the Repository**:
+## ✨ Fitur Utama
+
+-   **Pengambilan OTP Otomatis**: Menangkap kode login 5 digit dari Notifikasi Layanan Telegram secara instan dan menampilkannya di terminal.
+-   **Persistensi Sesi**: Membuat profil Chrome yang terisolasi untuk setiap nomor telepon.
+-   **Dukungan Multi-Login**:
+    -   **via QR Code**: Scan QR langsung dari aplikasi HP untuk membuat sesi.
+    -   **via Nomor Telepon**: Input manual nomor HP untuk membuat sesi.
+-   **Tanpa Masalah Headless**: Mendukung mode `HEADLESS=False` (tampilan browser muncul) untuk interaksi manual saat login awal.
+
+## 🛠️ Persyaratan Sistem
+
+-   **Python 3.8+**
+-   **Google Chrome** terinstall di sistem komputer.
+-   **Akun Telegram Aktif** (untuk scan QR atau menerima OTP).
+
+## 📦 Instalasi
+
+1.  **Clone Repository Ini**:
     ```bash
     git clone https://github.com/ululazmi18/telegram-web-auth-helper.git
     cd telegram-web-auth-helper
     ```
 
-2.  **Install Dependencies**:
+2.  **Install Library Pendukung**:
     ```bash
     pip install pyrofork playwright
     playwright install chromium
     ```
 
-## 📖 Usage
+## 🚀 Panduan Penggunaan
 
-### 1. Run the Script
-Execute the main script to start the authentication process:
+Jalankan skrip utama dengan perintah:
 
 ```bash
 python tg_web_auth.py
 ```
 
-### 2. Choose Login Method
-If no session exists, the interactive menu will prompt you:
+### 🔹 Alur Logika Program
+1.  **Cek Sesi**: Skrip akan mencari apakah ada file `*.session` di folder.
+2.  **Jika Sesi Tidak Ditemukan**:
+    -   Program akan meminta Anda **Membuat Sesi Baru**.
+    -   Pilih **[1] Scan QR** atau **[2] Nomor Telepon**.
+    -   Ikuti instruksi di layar untuk login ke API Pyrogram terlebih dahulu.
+    -   Setelah sukses, file `.session` akan dibuat.
+3.  **Jika Sesi Ditemukan**:
+    -   Program memuat sesi Pyrogram yang ada (untuk memantau OTP).
+    -   Program membuka **Browser Otomatis (Chrome)** menuju `web.telegram.org`.
+    -   **Langkah Manual**: Anda memasukkan nomor HP Anda di browser yang terbuka.
+    -   **Langkah Otomatis**: Skrip mendeteksi kode OTP yang dikirim Telegram ke akun Anda, lalu menampilkannya di terminal: `🔔 KODE LOGIN: 12345`.
+    -   **Selesai**: Masukkan kode tersebut di browser. Anda sekarang sudah login. Folder data browser `*_chrome` telah dibuat/diperbarui.
 
--   **[1] QR Code Login**: Use your phone to scan the QR code generated by the tool.
--   **[2] Phone Number Login**: Enter your number. The tool will auto-fetch the OTP code sent to your Telegram account.
+## 📂 Struktur Proyek
 
-### 3. Browser Automation Ready
-Once authenticated, a `.session` file and a corresponding `*_chrome` folder will be created. You can now use this persistent context for any Playwright automation task (e.g., taking screenshots) without being asked to log in again.
+| File / Folder | Deskripsi |
+| :--- | :--- |
+| `tg_web_auth.py` | **Skrip Utama**. Mengatur logika pembuatan sesi, membuka browser, dan menangkap OTP. |
+| `*.session` | **Sesi Pyrogram**. Menyimpan token otentikasi API Backend. Jaga file ini agar aman! |
+| `*_chrome/` | **Data Browser**. Menyimpan Cookies, LocalStorage, dan Cache. Folder inilah yang menyimpan status login browser Anda. |
 
-## 📂 Project Structure
+## ⚠️ Catatan Penting untuk Otomatisasi
 
-- `tg_web_auth.py`: Main authentication and session management script.
-- `*.session`: Pyrogram session file (Backend API access).
-- `*_chrome/`: Persistent Chrome user data directory (Frontend Browser access).
+-   **Jangan menghapus** file `*.session` atau folder `*_chrome`. Jika dihapus, Anda harus login ulang dari awal.
+-   **Pengguna Termux (Android)**: Library Playwright **TIDAK BISA** berjalan secara native di Termux standar. Gunakan skrip ini di Windows/Linux/Mac atau VPS dengan dukungan GUI.
+-   **Keamanan**: File `.session` memberikan akses penuh ke akun Anda via API. Jangan bagikan file ini ke orang lain.
 
-## ⚠️ Disclaimer
-
-This tool is intended for educational and testing purposes only. The developer is not responsible for any misuse. Please ensure you comply with Telegram's Terms of Service when using automation tools.
+## 📜 Lisensi
+*Open Source / Tujuan Edukasi.*
